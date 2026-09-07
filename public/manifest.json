@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Envpin \u2014 API Key Vault",
+  "version": "0.1.0",
+  "minimum_chrome_version": "102",
+  "description": "Securely store, sync, and copy your API keys and developer secrets across Chrome.",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}

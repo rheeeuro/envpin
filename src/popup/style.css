@@ -1,0 +1,35 @@
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#24272b;background:#f8f9fa;font-synthesis:none;font-size:13px}*{box-sizing:border-box}body{margin:0;width:380px;min-height:480px;max-height:600px;overflow:hidden}button,input,textarea{font:inherit}button{cursor:pointer;background:white;border:1px solid #dce0e3;border-radius:7px;padding:8px 12px;font-weight:550;color:inherit}button:hover{background:#eef0f2}button:disabled,fieldset:disabled{opacity:.6;cursor:wait}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #417762;outline-offset:3px}main{padding:20px;max-height:600px;overflow-y:auto}header,.row,.toolbar,.list-label,footer,.actions,.page-title,.form-actions{display:flex;align-items:center;justify-content:space-between}header{margin-bottom:26px}.brand{display:flex;align-items:center;gap:10px}.brand-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:8px;background:#252b2a;color:#fff;font:700 19px monospace}h1{font-size:19px;letter-spacing:-.7px;margin:0}.tagline{font-size:10px;color:#78817f}h2{font-size:14px;margin:0;overflow-wrap:anywhere}.quiet{background:transparent;border-color:transparent;padding:5px 7px;color:#68716d;font-size:11px}.toolbar{gap:9px}.toolbar input{margin:0}.primary{background:#2a4b3e;border-color:#2a4b3e;color:white}.primary:hover{background:#203c31}.add{font-size:23px;line-height:20px;width:38px;padding:8px}.list-label{font-size:10px;letter-spacing:1.5px;color:#777f7b;margin:22px 0 10px}.card{padding:16px 14px;background:white;border:1px solid #e2e5e3;border-radius:9px;margin-bottom:10px}.card .row{gap:8px}.card .row>div:first-child{min-width:0}.name{font-size:12px;color:#7a817d;margin:4px 0 0;overflow-wrap:anywhere}.secret{display:block;margin:17px 0 12px;font:12px ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.6}.actions{gap:2px;flex-shrink:0}.copy{font-size:11px;min-width:57px;padding:6px 9px}.date{font-size:9px;color:#929a95}.detail{font-size:11px;color:#707b74;overflow-wrap:anywhere;margin:6px 0;line-height:1.5}.note{white-space:pre-wrap}.card-footer{margin-top:14px}footer{font-size:10px;color:#8a948d;border-top:1px solid #e1e5e2;padding-top:15px;margin-top:22px}.empty{text-align:center;padding:38px 0 48px;color:#758077}.empty h2{color:#303a33;font-size:17px;margin:18px 0 10px}.empty p{line-height:1.7;margin-bottom:23px}.empty-mark{font:26px monospace;color:#9aa69e}.auth{padding:20px 1px}.eyebrow{font-size:9px;letter-spacing:1.5px;color:#88928b}.auth h2{font-size:25px;letter-spacing:-.8px;margin-top:12px}.intro{font-size:13px;color:#778179;line-height:1.7;margin-bottom:26px}fieldset{padding:0;border:0;margin:0;min-width:0}label{display:block;font-size:12px;font-weight:550;margin-bottom:17px}input,textarea{display:block;width:100%;background:#fff;border:1px solid #dce1dc;border-radius:7px;padding:11px 12px;margin-top:8px;resize:vertical;color:#242b27}input::placeholder{color:#a2aaa5}.full{width:100%;padding:12px}.hint{font-size:11px;color:#7d867e;line-height:1.6;margin:0 0 20px}.auth-footer{text-align:center;font-size:10px;color:#929c94;margin-top:29px}.page-title{justify-content:flex-start;gap:10px;margin-bottom:24px}.optional{font-size:10px;font-weight:400;color:#969d98;margin-left:5px}.form-actions{justify-content:flex-end;gap:8px;margin-top:22px}.error{padding:11px 13px;background:#fff0ea;border:1px solid #ead4c9;color:#873c28;border-radius:7px;font-size:12px;line-height:1.6;margin-bottom:18px}dialog{width:330px;max-width:calc(100% - 32px);border:1px solid #dce1dc;border-radius:12px;padding:22px;box-shadow:0 12px 45px #0002}dialog::backdrop{background:#18221d66}dialog p{font-size:12px;line-height:1.7;color:#6d776f;overflow-wrap:anywhere}.danger{background:#a54332;border-color:#a54332;color:white}.danger:hover{background:#8c3225}
+
+/* Keep the list controls visible while only the API key cards scroll. */
+.vault-list {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  overflow: hidden;
+}
+.vault-list > :not(.keys-scroll) {
+  flex-shrink: 0;
+}
+.keys-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 3px 6px 3px 3px;
+  margin: -3px -6px -3px -3px;
+}
+.keys-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.keys-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.keys-scroll::-webkit-scrollbar-thumb {
+  background: #c2cbc5;
+  border-radius: 999px;
+}
+.keys-scroll::-webkit-scrollbar-thumb:hover {
+  background: #96a49b;
+}
