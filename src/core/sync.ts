@@ -1,15 +1,34 @@
-import { PREFIX, repository } from './storage';
-import type { StoredEncryptedSecret } from '../types';
-function isRecord(value: unknown, name: string): value is StoredEncryptedSecret {
-  const v = value as StoredEncryptedSecret | undefined;
-  return !!v && v.version === 1 && name === PREFIX + v.id && typeof v.iv === 'string' && typeof v.ciphertext === 'string' && Number.isFinite(v.updatedAt);
-}
-// This worker only handles ciphertext. It never accesses session keys or plaintext.
+import { stableJson } from './serialization';
+import { compareRecords, DELETED, DESCRIPTOR, META, PREFIX, preserveMetadata, repository } from './storage';
+import { validateMetadata, validateRecord, isDeleted } from './validation';
+import { exclusive } from './coordination';
+// This worker handles ciphertext and metadata only; it never reads session keys.
 export async function reconcileSync(changes: Record<string, chrome.storage.StorageChange>) {
-  for (const [name, { oldValue, newValue }] of Object.entries(changes)) {
-    // A missing newValue is a deletion; never resurrect it.
-    if (!isRecord(oldValue, name) || !isRecord(newValue, name)) continue;
-    const newer = oldValue.updatedAt > newValue.updatedAt || (oldValue.updatedAt === newValue.updatedAt && oldValue.ciphertext > newValue.ciphertext);
-    if (newer && JSON.stringify(await repository.get(oldValue.id)) === JSON.stringify(newValue)) await repository.set(oldValue);
-  }
+  await exclusive('sync', async () => {
+    for (const [name, { oldValue, newValue }] of Object.entries(changes)) {
+      if (name === META) {
+        for (const value of [oldValue, newValue]) {
+          if (value !== undefined) await preserveMetadata(validateMetadata(value));
+        }
+        continue;
+      }
+      if (name.startsWith(DESCRIPTOR) || (!name.startsWith(PREFIX) && !name.startsWith(DELETED))) continue;
+      const id = name.slice(name.indexOf(':') + 1);
+      const current = await repository.get(id);
+      // A late offline secret cannot replace the separately retained tombstone.
+      if (current && isDeleted(current)) {
+        await chrome.storage.sync.remove(PREFIX + id);
+        continue;
+      }
+      if (oldValue === undefined) continue;
+      const old = validateRecord(oldValue, id);
+      if (newValue === undefined) {
+        if (isDeleted(old) && (!current || !isDeleted(current))) await repository.set(old);
+        continue;
+      }
+      const next = validateRecord(newValue, id);
+      if (old.version === 2 && next.version === 2 && old.vaultId !== next.vaultId) continue;
+      if (compareRecords(old, next) > 0 && stableJson(await repository.get(id)) === stableJson(next)) await repository.set(old);
+    }
+  });
 }

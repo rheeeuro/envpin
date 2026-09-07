@@ -1,5 +1,6 @@
 import type { Secret, SecretInput } from '../types';
-import { UserError } from './storage';
+import { UserError } from './errors';
+import { validId, validTime } from './validation';
 export function maskSecret(value: string): string {
   if (value.length <= 12) return '••••••••';
   const prefix = value.match(/^[a-zA-Z]{2,8}-(?:[a-zA-Z]{2,8}-)?/)?.[0] ?? '';
@@ -13,6 +14,6 @@ export function validateInput(input: SecretInput): SecretInput {
   return { service: input.service.trim(), name: input.name.trim(), secret: input.secret, website, note: input.note?.trim() ?? '' };
 }
 export function validateSecret(value: Secret, id: string, updatedAt: number): Secret {
-  if (!value || value.id !== id || value.updatedAt !== updatedAt || !Number.isFinite(value.createdAt) || !Number.isFinite(updatedAt) || typeof value.service !== 'string' || typeof value.name !== 'string' || typeof value.secret !== 'string' || (value.website !== undefined && typeof value.website !== 'string') || (value.note !== undefined && typeof value.note !== 'string')) throw new UserError('Unable to read a synced key. Your saved data has not been changed.');
+  if (!value || value.id !== id || value.updatedAt !== updatedAt || !validId(id) || !validTime(value.createdAt) || !validTime(updatedAt) || value.createdAt > updatedAt || typeof value.service !== 'string' || typeof value.name !== 'string' || typeof value.secret !== 'string' || (value.website !== undefined && typeof value.website !== 'string') || (value.note !== undefined && typeof value.note !== 'string')) throw new UserError('Unable to read a synced key. Your saved data has not been changed.');
   return value;
 }

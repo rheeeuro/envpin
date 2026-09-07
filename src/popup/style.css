@@ -33,3 +33,5 @@
 .keys-scroll::-webkit-scrollbar-thumb:hover {
   background: #96a49b;
 }
+
+.auth-footer a, footer a { color: inherit; text-underline-offset: 3px; }

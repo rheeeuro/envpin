@@ -35,17 +35,17 @@ export function App({ vault }: { vault: Vault }) {
       <div className="eyebrow">YOUR DEVELOPER SECRETS</div><h2>{state.status === 'create' ? 'Create your vault' : 'Vault locked'}</h2>
       <p className="intro">{state.status === 'create' ? 'Keep your API keys in one place. Encrypted with your master password.' : 'Existing Envpin Vault Found. Enter your master password to access your keys.'}</p>
       <form onSubmit={e => { e.preventDefault(); void authenticate(); }}><fieldset disabled={busy}>
-        <label>Master Password<input autoFocus type="password" required value={password} autoComplete={state.status === 'create' ? 'new-password' : 'current-password'} onChange={e => setPassword(e.target.value)} /></label>
-        {state.status === 'create' && <><label>Confirm Password<input type="password" required autoComplete="new-password" value={confirm} onChange={e => setConfirm(e.target.value)} /></label><p className="hint">Choose a long, unique password. There is no password recovery.</p></>}
+        <label>Master Password<input autoFocus type="password" required minLength={state.status === 'create' ? 8 : undefined} value={password} autoComplete={state.status === 'create' ? 'new-password' : 'current-password'} onChange={e => setPassword(e.target.value)} /></label>
+        {state.status === 'create' && <><label>Confirm Password<input type="password" required autoComplete="new-password" value={confirm} onChange={e => setConfirm(e.target.value)} /></label><p className="hint">Use at least 8 characters. A long, unique passphrase is safer. There is no password recovery.</p></>}
         <button className="primary full" type="submit">{busy ? 'Please wait…' : state.status === 'create' ? 'Create Vault' : 'Unlock'}</button>
-      </fieldset></form><p className="auth-footer">Encrypted locally · Synced with Chrome</p>
+      </fieldset></form><p className="auth-footer">Encrypted locally · Synced with Chrome<br /><a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
     </section> : page !== 'list' ? <SecretForm original={typeof page === 'object' ? page : undefined} busy={busy} cancel={() => { setPage('list'); setError(''); }} save={input => run(async () => { await vault.save(input, typeof page === 'object' ? page : undefined); setPage('list'); })} /> : <>
       <div className="toolbar"><input ref={search} type="search" aria-label="Search keys" placeholder="Search keys…" value={query} onChange={e => setQuery(e.target.value)} /><button className="primary add" aria-label="Add API Key" onClick={() => { setError(''); setPage('add'); }}>+</button></div>
       <div className="list-label"><span>API KEYS</span><span>{filtered.length}</span></div>
       <div className="keys-scroll">
       {!state.secrets.length ? <section className="empty"><span className="empty-mark" aria-hidden="true">&gt;_</span><h2>No API keys yet</h2><p>Keep your API keys in one place<br />and copy them whenever you need.</p><button className="primary" onClick={() => setPage('add')}>Add API Key</button></section> : !filtered.length ? <p className="empty">No keys match your search.</p> : <section aria-label="API keys">{filtered.map(secret => <SecretCard key={secret.id} secret={secret} edit={() => { setError(''); setPage(secret); }} remove={() => { setError(''); setDeleting(secret); }} />)}</section>}
       </div>
-      <footer>Encrypted vault <span>Chrome Sync</span></footer>
+      <footer>Encrypted vault <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy</a><span>Chrome Sync</span></footer>
     </>}
     {deleting && <ConfirmDialog secret={deleting} busy={busy} cancel={() => setDeleting(null)} confirm={() => void run(async () => { const secret = deleting; setDeleting(null); await vault.remove(secret); })} />}
   </main>;

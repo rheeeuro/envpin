@@ -4,7 +4,7 @@ import { reconcileSync } from '../src/core/sync';
 import { repository } from '../src/core/storage';
 let mock: ReturnType<typeof mockChrome>;
 beforeEach(() => { mock = mockChrome(); });
-const record = { version: 1 as const, id: 'test', iv: 'iv', ciphertext: 'ciphertext', updatedAt: 20 };
+const record = { version: 1 as const, id: 'test', iv: btoa('i'.repeat(12)), ciphertext: btoa('c'.repeat(32)), updatedAt: 20 };
 it('retains the most recent timestamp even while locked', async () => {
   const stale = { ...record, updatedAt: 10 }; mock.stores.sync['secret:test'] = stale;
   await reconcileSync({ 'secret:test': { oldValue: record, newValue: stale } }); expect(await repository.get('test')).toEqual(record);
@@ -17,6 +17,6 @@ it('does not overwrite a change that arrived during reconciliation', async () =>
   await reconcileSync({ 'secret:test': { oldValue: record, newValue: { ...record, updatedAt: 10 } } }); expect(await repository.get('test')).toEqual(latest);
 });
 it('settles equal timestamps deterministically', async () => {
-  const winner = { ...record, ciphertext: 'z' }, loser = { ...record, ciphertext: 'a' }; mock.stores.sync['secret:test'] = loser;
+  const winner = { ...record, ciphertext: btoa('z'.repeat(32)) }, loser = { ...record, ciphertext: btoa('a'.repeat(32)) }; mock.stores.sync['secret:test'] = loser;
   await reconcileSync({ 'secret:test': { oldValue: winner, newValue: loser } }); expect(await repository.get('test')).toEqual(winner);
 });

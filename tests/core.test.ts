@@ -46,7 +46,7 @@ describe('vault and Chrome storage integration', () => {
     await vault.save({ ...input, name: 'Updated' }, first); const updated = vault.getSnapshot().secrets[0]; expect(updated.name).toBe('Updated');
     await expect(vault.save(input, first)).rejects.toThrow('changed or deleted');
     await expect(vault.remove(first)).rejects.toThrow('changed');
-    await vault.remove(updated); expect(await repository.getAll()).toEqual([]);
+    await vault.remove(updated); expect(vault.getSnapshot().secrets).toEqual([]); expect(await repository.getAll()).toEqual([expect.objectContaining({ kind: 'deleted' })]);
     await vault.lock(); expect(vault.getSnapshot().status).toBe('locked'); expect(chromeMock.stores.session[SESSION]).toBeUndefined(); vault.dispose();
   });
   it('recovers on a new device using only synced ciphertext and the password', async () => {
@@ -61,9 +61,9 @@ describe('vault and Chrome storage integration', () => {
   });
   it('does not overwrite an existing vault or unreadable records', async () => {
     const vault = await created(); const meta = structuredClone(chromeMock.stores.sync[META]);
-    await expect(vault.create('another')).rejects.toThrow('Existing'); expect(chromeMock.stores.sync[META]).toEqual(meta);
-    await vault.save(input); const item = (await repository.getAll())[0]; await chromeMock.storage.sync.set({ ['secret:' + item.id]: { ...item, ciphertext: 'AAAA' } }); await vault.load();
-    expect(vault.getSnapshot().error).toContain('could not be decrypted'); expect(await repository.get(item.id)).toMatchObject({ ciphertext: 'AAAA' }); vault.dispose();
+    await expect(vault.create('another-password')).rejects.toThrow('Existing'); expect(chromeMock.stores.sync[META]).toEqual(meta);
+    await vault.save(input); const item = (await repository.getAll())[0]; await chromeMock.storage.sync.set({ ['secret:' + item.id]: { ...item, ciphertext: 'AAAA' } }); await expect(vault.load()).rejects.toThrow('invalid');
+    expect(chromeMock.stores.sync['secret:' + item.id]).toMatchObject({ ciphertext: 'AAAA' }); vault.dispose();
   });
   it('rejects moving ciphertext to another record identity', async () => {
     const vault = await created(); await vault.save(input); const record = (await repository.getAll())[0];

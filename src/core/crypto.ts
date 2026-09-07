@@ -1,4 +1,5 @@
-import type { EncryptedPayload, VaultMetadata } from '../types';
+import type { EncryptedPayload, StoredEncryptedSecret, VaultMetadata } from '../types';
+import { validateMetadata, validatePayload } from './validation';
 export const ITERATIONS = 600_000;
 const VERIFICATION = 'API_KEY_VAULT_VERIFICATION_V1';
 export function encodeBase64(bytes: Uint8Array): string { return btoa(Array.from(bytes, b => String.fromCharCode(b)).join('')); }
@@ -15,11 +16,25 @@ export async function encrypt<T>(value: T, key: CryptoKey, context: string): Pro
   return { iv: encodeBase64(iv), ciphertext: encodeBase64(new Uint8Array(ciphertext)) };
 }
 export async function decrypt<T>(payload: EncryptedPayload, key: CryptoKey, context: string): Promise<T> {
+  validatePayload(payload);
   const iv = decodeBase64(payload.iv);
   if (iv.length !== 12) throw new Error('Invalid encrypted data.');
   const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv, additionalData: new TextEncoder().encode(context) }, key, decodeBase64(payload.ciphertext));
   return JSON.parse(new TextDecoder().decode(plain)) as T;
 }
-export async function makeMetadata(key: CryptoKey, salt: Uint8Array): Promise<VaultMetadata> { return { version: 1, salt: encodeBase64(salt), iterations: ITERATIONS, verification: await encrypt(VERIFICATION, key, 'envpin:vault:1'), createdAt: Date.now() }; }
-export async function verifyKey(key: CryptoKey, meta: VaultMetadata): Promise<void> { if (meta.version !== 1 || await decrypt(meta.verification, key, 'envpin:vault:1') !== VERIFICATION) throw new Error('Unable to unlock vault.'); }
+export function vaultIdentity(meta: VaultMetadata): string {
+  return meta.version === 2 ? meta.id : 'legacy-' + Array.from(decodeBase64(meta.salt), b => b.toString(16).padStart(2, '0')).join('');
+}
+const verificationContext = (meta: VaultMetadata) => meta.version === 1 ? 'envpin:vault:1' : `envpin:vault:2:${meta.id}`;
+export async function makeMetadata(key: CryptoKey, salt: Uint8Array): Promise<VaultMetadata> {
+  const id = crypto.randomUUID();
+  return { version: 2, id, salt: encodeBase64(salt), iterations: ITERATIONS, verification: await encrypt(VERIFICATION, key, `envpin:vault:2:${id}`), createdAt: Date.now() };
+}
+export async function verifyKey(key: CryptoKey, meta: VaultMetadata): Promise<void> {
+  validateMetadata(meta);
+  if (await decrypt(meta.verification, key, verificationContext(meta)) !== VERIFICATION) throw new Error('Unable to unlock vault.');
+}
 export const secretContext = (id: string, updatedAt: number) => `envpin:secret:1:${id}:${updatedAt}`;
+export function recordContext(record: Pick<StoredEncryptedSecret, 'version' | 'id' | 'updatedAt'> & { vaultId?: string; kind?: string }): string {
+  return record.version === 1 ? secretContext(record.id, record.updatedAt) : `envpin:secret:2:${record.vaultId}:${record.kind}:${record.id}:${record.updatedAt}`;
+}
