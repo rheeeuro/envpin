@@ -10,6 +10,9 @@ describe('popup', () => {
   it('masks secrets by default, reveals for ten seconds and confirms clipboard copy', async () => {
     vi.useFakeTimers(); const writeText = vi.fn().mockResolvedValue(undefined); Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     render(<SecretCard secret={secret} edit={() => {}} remove={() => {}} />);
+    expect(screen.queryByRole('button', { name: 'Edit Example / Personal' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Delete Example / Personal' })).toBeNull();
+    expect(screen.queryByText(/Created/)).toBeNull();
     expect(screen.queryByText(secret.secret)).toBeNull(); fireEvent.click(screen.getByText('Show')); expect(screen.getByText(secret.secret)).toBeTruthy();
     act(() => { vi.advanceTimersByTime(10_000); }); expect(screen.queryByText(secret.secret)).toBeNull();
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy Example / Personal' })); });
@@ -26,13 +29,42 @@ describe('popup', () => {
     fireEvent.change(screen.getByLabelText('Secret'), { target: { value: '  test secret  ' } });
     await act(async () => { fireEvent.click(screen.getByText('Save key')); }); expect(save).toHaveBeenCalledWith(expect.objectContaining({ secret: '  test secret  ' }));
   });
-  it('filters metadata, supports search shortcut, and opens add form', () => {
+  it('filters metadata, supports search shortcut, and keeps changes out of the popup', () => {
     const state: VaultState = { status: 'unlocked', secrets: [secret], error: '' };
     const vault = { subscribe: () => () => {}, getSnapshot: () => state } as unknown as Vault;
     render(<App vault={vault} />); fireEvent.keyDown(document, { key: 'k', ctrlKey: true }); expect(document.activeElement).toBe(screen.getByRole('searchbox'));
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: secret.secret } }); expect(screen.getByText('No keys match your search.')).toBeTruthy();
     fireEvent.keyDown(document, { key: 'Escape' }); expect(screen.getByText('Example')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Add API Key' })); expect(screen.getByLabelText('Service')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Add API Key' })).toBeNull();
+  });
+  it('opens the full manager and pins keys to the top from that page', async () => {
+    const second = { ...secret, id: 'second', name: 'Second', createdAt: 2000, updatedAt: 2000 };
+    const state: VaultState = { status: 'unlocked', secrets: [secret, second], error: '' };
+    const arrange = vi.fn().mockResolvedValue(undefined);
+    const vault = { subscribe: () => () => {}, getSnapshot: () => state, arrange } as unknown as Vault;
+    const { unmount } = render(<App vault={vault} />);
+    expect(screen.getByRole('link', { name: 'Manage' }).getAttribute('href')).toBe('manage.html');
+    unmount();
+    render(<App vault={vault} mode="manager" />);
+    expect(screen.getByRole('button', { name: 'Add API Key' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Edit Example / Personal' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Delete Example / Personal' })).toBeTruthy();
+    expect(screen.getAllByText(/Created/)).toHaveLength(2);
+    const firstHandle = screen.getByLabelText('Drag Example / Personal');
+    expect(firstHandle).toBeTruthy();
+    const dataTransfer = { effectAllowed: '', dropEffect: '', setData: vi.fn() };
+    await act(async () => { fireEvent.dragStart(firstHandle, { dataTransfer }); });
+    await act(async () => { fireEvent.dragOver(screen.getByText('Second').closest('article')!, { dataTransfer, clientY: 1 }); });
+    expect([...screen.getByLabelText('API keys').querySelectorAll('article')].map(card => card.textContent)).toEqual([
+      expect.stringContaining('Second'), expect.stringContaining('Personal'),
+    ]);
+    await act(async () => {
+      fireEvent.drop(screen.getByText('Second').closest('article')!, { dataTransfer });
+    });
+    expect(arrange).toHaveBeenCalledWith([{ id: 'second', pinned: false }, { id: 'test', pinned: false }]);
+    arrange.mockClear();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Pin Example / Second' })); });
+    expect(arrange).toHaveBeenCalledWith([{ id: 'second', pinned: true }, { id: 'test', pinned: false }]);
   });
   it('requires explicit delete confirmation', () => {
     HTMLDialogElement.prototype.showModal = vi.fn(); HTMLDialogElement.prototype.close = vi.fn(); const confirm = vi.fn(), cancel = vi.fn();

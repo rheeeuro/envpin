@@ -16,7 +16,7 @@ function walk(directory, prefix = '') {
 }
 const files = walk(root).filter(file => file !== 'icons/mark.svg').sort();
 for (const file of files) {
-  if (!/^(manifest\.json|popup\.html|privacy\.html|background\.js|popup\.js|assets\/[A-Za-z0-9_-]+\.(js|css)|icons\/icon-(16|32|48|128)\.png)$/.test(file)) fail(`Unexpected release file: ${file}`);
+  if (!/^(manifest\.json|(?:popup|manage)\.html|privacy\.html|background\.js|(?:popup|manage)\.js|assets\/[A-Za-z0-9_-]+\.(js|css)|icons\/icon-(16|32|48|128)\.png)$/.test(file)) fail(`Unexpected release file: ${file}`);
   if (file.endsWith('.js')) {
     const code = readFileSync(join(root, file), 'utf8');
     if (/\beval\s*\(|new\s+Function\s*\(|\bfetch\s*\(|XMLHttpRequest|import\s*\(\s*['"]https?:/.test(code)) fail(`Unexpected executable/network primitive: ${file}`);

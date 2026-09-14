@@ -5,6 +5,8 @@ export interface Secret {
   secret: string;
   website?: string;
   note?: string;
+  pinned?: boolean;
+  position?: number;
   createdAt: number;
   updatedAt: number;
 }

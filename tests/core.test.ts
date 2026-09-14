@@ -49,6 +49,26 @@ describe('vault and Chrome storage integration', () => {
     await vault.remove(updated); expect(vault.getSnapshot().secrets).toEqual([]); expect(await repository.getAll()).toEqual([expect.objectContaining({ kind: 'deleted' })]);
     await vault.lock(); expect(vault.getSnapshot().status).toBe('locked'); expect(chromeMock.stores.session[SESSION]).toBeUndefined(); vault.dispose();
   });
+  it('persists pinned and manual ordering inside encrypted records', async () => {
+    const vault = await created();
+    await vault.save({ ...input, name: 'First' });
+    await vault.save({ ...input, name: 'Second' });
+    await vault.save({ ...input, name: 'Third' });
+    const [first, second, third] = vault.getSnapshot().secrets;
+    await vault.arrange([{ id: third.id, pinned: true }, { id: second.id, pinned: false }, { id: first.id, pinned: false }]);
+    expect(vault.getSnapshot().secrets.map(secret => [secret.name, secret.pinned, secret.position])).toEqual([
+      ['Third', true, 0], ['Second', false, 1], ['First', false, 2],
+    ]);
+    const pinned = vault.getSnapshot().secrets[0];
+    await vault.save({ ...input, name: 'Pinned and edited' }, pinned);
+    expect(vault.getSnapshot().secrets[0]).toMatchObject({ name: 'Pinned and edited', pinned: true, position: 0 });
+    const serialized = JSON.stringify(chromeMock.stores.sync);
+    expect(serialized).not.toContain('Third');
+    vault.dispose();
+    const reopened = new Vault(); await reopened.start();
+    expect(reopened.getSnapshot().secrets.map(secret => secret.name)).toEqual(['Pinned and edited', 'Second', 'First']);
+    reopened.dispose();
+  });
   it('recovers on a new device using only synced ciphertext and the password', async () => {
     const vault = await created(); await vault.save(input); const synced = structuredClone(chromeMock.stores.sync); vault.dispose();
     chromeMock = mockChrome(); chromeMock.stores.sync = synced;

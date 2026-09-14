@@ -3,7 +3,7 @@ import type { EncryptedRecord, Secret, SecretInput, StoredEncryptedSecret, Vault
 import { decrypt, deriveKey, encrypt, generateSalt, decodeBase64, makeMetadata, recordContext, vaultIdentity, verifyKey } from './crypto';
 import { checkVaultConflict, DELETED, DESCRIPTOR, getMetadata, hasVaultData, META, PREFIX, preserveMetadata, protectStorage, repository, subscribeStorage, writeItem } from './storage';
 import { clearSession, discardSession, EPOCH, fingerprint, restoreSession, saveSession, sessionEpoch, sessionIsCurrent, SESSION } from './session';
-import { validateInput, validateSecret } from './secret';
+import { compareSecretOrder, validateInput, validateSecret } from './secret';
 import { isDeleted, validateMetadata } from './validation';
 import { CancelledError, UserError } from './errors';
 import { exclusive } from './coordination';
@@ -168,7 +168,7 @@ export class Vault {
     }));
     if (generation !== this.generation || sequence !== this.loadSequence) return;
     this.publish({
-      secrets: results.flatMap(result => result.status === 'fulfilled' && result.value ? [result.value] : []).sort((a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id)),
+      secrets: results.flatMap(result => result.status === 'fulfilled' && result.value ? [result.value] : []).sort(compareSecretOrder),
       error: results.some(r => r.status === 'rejected') ? 'Some synced keys could not be decrypted. Their saved data has not been changed.' : '',
     });
   }
@@ -199,7 +199,8 @@ export class Vault {
     const clean = validateInput(input);
     await this.mutate(original, async (key, meta, current) => {
       const now = Math.max(Date.now(), (current?.updatedAt ?? 0) + 1);
-      const secret: Secret = { ...clean, id: original?.id ?? crypto.randomUUID(), createdAt: original?.createdAt ?? now, updatedAt: now };
+      const nextPosition = this.state.secrets.reduce((maximum, secret) => Math.max(maximum, secret.position ?? -1), -1) + 1;
+      const secret: Secret = { ...clean, id: original?.id ?? crypto.randomUUID(), pinned: original?.pinned ?? false, position: original?.position ?? nextPosition, createdAt: original?.createdAt ?? now, updatedAt: now };
       const header = { version: 2 as const, kind: 'secret' as const, vaultId: vaultIdentity(meta), id: secret.id, updatedAt: now };
       return { ...header, ...await encrypt(secret, key, recordContext(header)) };
     });
@@ -210,6 +211,36 @@ export class Vault {
       const header = { version: 2 as const, kind: 'deleted' as const, vaultId: vaultIdentity(meta), id: secret.id, updatedAt };
       return { ...header, ...await encrypt({ id: secret.id, deleted: true, updatedAt }, key, recordContext(header)) } satisfies EncryptedRecord;
     });
+  }
+  async arrange(layout: Array<{ id: string; pinned: boolean }>) {
+    const key = this.key, meta = this.meta, generation = this.generation;
+    if (!key || !meta) throw new UserError('Unlock your vault first.');
+    const originals = this.state.secrets;
+    if (layout.length !== originals.length || new Set(layout.map(item => item.id)).size !== layout.length || originals.some(secret => !layout.some(item => item.id === secret.id))) throw new UserError('The key list changed. Try arranging it again.');
+    await exclusive('sync', async () => {
+      await this.assertMetadata(meta, generation);
+      await checkVaultConflict(meta);
+      const currentRecords = await Promise.all(originals.map(secret => repository.get(secret.id)));
+      const storedSecrets = await Promise.all(currentRecords.map(async (record, index) => {
+        const original = originals[index];
+        if (!record || isDeleted(record) || record.updatedAt !== original.updatedAt) throw new UserError('A key changed on another browser. Try arranging it again.');
+        const stored = validateSecret(await decrypt<Secret>(record, key, recordContext(record)), record.id, record.updatedAt);
+        if (stableJson(stored) !== stableJson(original)) throw new UserError('A key changed on another browser. Try arranging it again.');
+        return stored;
+      }));
+      for (let position = 0; position < layout.length; position++) {
+        const item = layout[position];
+        const secret = storedSecrets.find(value => value.id === item.id)!;
+        if (Boolean(secret.pinned) === item.pinned && secret.position === position) continue;
+        const record = currentRecords[originals.findIndex(value => value.id === item.id)]!;
+        const updatedAt = Math.max(Date.now(), record.updatedAt + 1);
+        const updated: Secret = { ...secret, pinned: item.pinned, position, updatedAt };
+        const header = { version: 2 as const, kind: 'secret' as const, vaultId: vaultIdentity(meta), id: updated.id, updatedAt };
+        await repository.set({ ...header, ...await encrypt(updated, key, recordContext(header)) });
+        this.assertCurrent(generation);
+      }
+    });
+    await this.load();
   }
 }
 export function friendlyError(error: unknown) {

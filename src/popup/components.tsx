@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type DragEventHandler } from 'react';
 import type { Secret, SecretInput } from '../types';
 import { maskSecret } from '../core/secret';
-export function SecretCard({ secret, edit, remove }: { secret: Secret; edit: () => void; remove: () => void }) {
+export function SecretCard({ secret, edit, remove, manage = false, pin, drag }: { secret: Secret; edit: () => void; remove: () => void; manage?: boolean; pin?: () => void; drag?: { dragging: boolean; onDragStart: DragEventHandler<HTMLElement>; onDragEnd: DragEventHandler<HTMLElement>; onDragOver: DragEventHandler<HTMLElement>; onDrop: DragEventHandler<HTMLElement> } }) {
   const [shown, setShown] = useState(false);
   const [copy, setCopy] = useState('Copy');
   const copyTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -13,12 +13,12 @@ export function SecretCard({ secret, edit, remove }: { secret: Secret; edit: () 
     try { await navigator.clipboard.writeText(secret.secret); setCopy('Copied ✓'); } catch { setCopy('Copy failed'); }
     copyTimer.current = setTimeout(() => setCopy('Copy'), 1500);
   }
-  return <article className="card">
-    <div className="row"><div><h2>{secret.service}</h2><p className="name">{secret.name}</p></div><div className="actions"><button className="quiet" onClick={edit} aria-label={`Edit ${secret.service} / ${secret.name}`}>Edit</button><button className="quiet" onClick={remove} aria-label={`Delete ${secret.service} / ${secret.name}`}>Delete</button></div></div>
+  return <article className={`card${drag?.dragging ? ' dragging' : ''}`} onDragOver={drag?.onDragOver} onDrop={drag?.onDrop}>
+    <div className="row"><div className="card-title">{manage && drag && <span className="drag-handle" draggable onDragStart={drag.onDragStart} onDragEnd={drag.onDragEnd} aria-label={`Drag ${secret.service} / ${secret.name}`} title="Drag to reorder">⠿</span>}<div><h2>{secret.service}{secret.pinned && <span className="pinned-label">Pinned</span>}</h2><p className="name">{secret.name}</p></div></div>{manage && <div className="actions"><button className={`quiet pin${secret.pinned ? ' active' : ''}`} onClick={pin} aria-pressed={Boolean(secret.pinned)} aria-label={`${secret.pinned ? 'Unpin' : 'Pin'} ${secret.service} / ${secret.name}`} title={secret.pinned ? 'Unpin' : 'Pin'}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14.5 4.5 19.5 9.5l-2.1 1.1-2.5 4.8-2.1-2.1-5.2 5.2-2.1-2.1 5.2-5.2-2.1-2.1 4.8-2.5 1.1-2.1Z"/></svg></button><button className="quiet" onClick={edit} aria-label={`Edit ${secret.service} / ${secret.name}`}>Edit</button><button className="quiet" onClick={remove} aria-label={`Delete ${secret.service} / ${secret.name}`}>Delete</button></div>}</div>
     <code className="secret">{shown ? secret.secret : maskSecret(secret.secret)}</code>
     {secret.website && <p className="detail">{secret.website}</p>}
     {secret.note && <p className="detail note">{secret.note}</p>}
-    <div className="row card-footer"><span className="date">Created {new Date(secret.createdAt).toLocaleDateString()}</span><div className="actions"><button className="quiet" aria-pressed={shown} onClick={() => setShown(!shown)}>{shown ? 'Hide' : 'Show'}</button><button className="copy" onClick={() => void copySecret()} aria-label={`Copy ${secret.service} / ${secret.name}`}><span aria-live="polite">{copy}</span></button></div></div>
+    <div className={`row card-footer${manage ? '' : ' popup-actions'}`}>{manage && <span className="date">Created {new Date(secret.createdAt).toLocaleDateString()}</span>}<div className="actions"><button className="quiet" aria-pressed={shown} onClick={() => setShown(!shown)}>{shown ? 'Hide' : 'Show'}</button><button className="copy" onClick={() => void copySecret()} aria-label={`Copy ${secret.service} / ${secret.name}`}><span aria-live="polite">{copy}</span></button></div></div>
   </article>;
 }
 export function SecretForm({ original, busy, save, cancel }: { original?: Secret; busy: boolean; save: (input: SecretInput) => Promise<void>; cancel: () => void }) {
