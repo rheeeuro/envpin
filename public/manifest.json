@@ -4,6 +4,7 @@
   "version": "0.2.0",
   "minimum_chrome_version": "102",
   "description": "Securely store, sync, and copy your API keys and developer secrets across Chrome.",
+  "homepage_url": "https://github.com/rheeeuro/envpin",
   "permissions": [
     "storage"
   ],

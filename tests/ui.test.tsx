@@ -36,6 +36,7 @@ describe('popup', () => {
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: secret.secret } }); expect(screen.getByText('No keys match your search.')).toBeTruthy();
     fireEvent.keyDown(document, { key: 'Escape' }); expect(screen.getByText('Example')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Add API Key' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'GitHub' }).getAttribute('href')).toBe('https://github.com/rheeeuro/envpin');
   });
   it('opens the full manager and pins keys to the top from that page', async () => {
     const second = { ...secret, id: 'second', name: 'Second', createdAt: 2000, updatedAt: 2000 };

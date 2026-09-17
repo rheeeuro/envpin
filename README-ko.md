@@ -1,0 +1,130 @@
+# Envpin
+
+[English](README.md) | **한국어**
+
+**Pin. Copy. Build.**
+
+여러 서비스의 API Key를 Chrome에 모아 두고, 필요할 때 바로 복사하세요.
+Envpin은 개발자를 위한 작은 API Key 보관함입니다. 서비스와 용도별로 키를 정리하고, Master Password로 잠그고, Chrome Sync를 통해 다른 PC에서도 사용할 수 있습니다.
+
+[Chrome 웹 스토어에서 설치](https://chromewebstore.google.com/detail/envpin-%E2%80%94-api-key-vault/jbgcepnmfgekljldjlfakmjphbomgkec) · [문제 신고 및 기능 제안](https://github.com/rheeeuro/envpin/issues) · [개인정보처리방침](PRIVACY.md)
+
+<p align="center">
+  <img src="store/screenshot-keys-1280x800.png" width="49%" alt="Envpin API 키 목록" />
+  <img src="store/screenshot-lock-1280x800.png" width="49%" alt="잠긴 Envpin 보관함" />
+</p>
+
+## 주요 기능
+
+- **한 번에 복사** — 팝업에서 원하는 키의 `Copy`를 누르면 클립보드에 복사됩니다.
+- **보기 쉽게 정리** — 서비스명, 키 이름, 웹사이트, 메모를 함께 저장합니다.
+- **빠른 검색** — 서비스명, 이름, 웹사이트, 메모로 키를 찾습니다.
+- **별도 관리 페이지** — 팝업의 `Manage`를 눌러 넓은 화면에서 키를 관리하고, 자주 쓰는 키를 상단에 고정하거나 드래그해 순서를 바꿀 수 있습니다.
+- **기본 마스킹** — 키를 가려서 표시하고, `Show`를 누르면 10초 동안만 보여 줍니다.
+- **Vault 잠금** — Master Password로 잠금을 해제합니다. 팝업을 닫아도 유지되며 Chrome을 재시작하면 다시 잠깁니다.
+- **암호화 및 동기화** — 키와 메모를 암호화해 저장하고, Chrome Sync가 활성화된 기기 사이에 동기화합니다.
+
+## 설치하기
+
+### Chrome 웹 스토어에서 설치
+
+1. [Envpin — API Key Vault](https://chromewebstore.google.com/detail/envpin-%E2%80%94-api-key-vault/jbgcepnmfgekljldjlfakmjphbomgkec) 페이지를 엽니다.
+2. **Chrome에 추가**를 눌러 설치합니다.
+3. Chrome 툴바의 확장 프로그램 메뉴에서 **Envpin**을 고정합니다.
+
+Envpin은 저장소 권한만 요청합니다. 웹페이지를 읽거나 API Key를 자동 입력하지 않으며, 자체 서버·분석·광고 기능을 사용하지 않습니다.
+
+### 소스에서 직접 설치
+
+개발 또는 검증 목적으로 이 저장소의 소스를 빌드해 설치할 수도 있습니다. Git과 Node.js 22 이상을 준비하세요.
+
+```sh
+git clone https://github.com/rheeeuro/envpin.git
+cd envpin
+npm ci
+npm run build
+```
+
+1. Chrome 주소창에 `chrome://extensions`를 입력합니다.
+2. 오른쪽 위의 **개발자 모드**를 켭니다.
+3. **압축해제된 확장 프로그램을 로드합니다**를 누르고, 방금 빌드한 `envpin/dist` 폴더를 선택합니다.
+4. Chrome 툴바의 확장 프로그램 메뉴에서 **Envpin**을 고정합니다.
+
+> 소스에서 직접 설치한 빌드는 Chrome 웹 스토어 버전과 확장 ID가 다를 수 있으며, 두 설치 사이에는 Vault가 동기화되지 않습니다.
+
+## 처음 사용하기
+
+### 1. 보관함 만들기
+
+툴바에서 Envpin을 열고 Master Password를 두 번 입력한 뒤 `Create Vault`를 누릅니다. 8자 이상의 비밀번호를 입력하세요. 길고 고유한 암호문을 권장합니다.
+
+**Master Password를 잊으면 저장된 키를 복구할 수 없습니다.** 비밀번호 재설정과 복구 기능은 제공하지 않습니다.
+
+### 2. API Key 추가하기
+
+`+` 또는 `Add API Key`를 누르고 다음 내용을 입력합니다.
+
+| 항목 | 입력 내용 |
+| --- | --- |
+| Service | 서비스명. 예: OpenAI, GitHub |
+| Name | 키를 구분할 이름. 예: Personal, Development |
+| Secret | 저장할 API Key 원문 |
+| Website | 관련 웹사이트 주소. 선택 사항 |
+| Note | 용도나 참고할 메모. 선택 사항 |
+
+`Save key`를 누르면 목록으로 돌아옵니다.
+
+### 3. 복사하고 관리하기
+
+- `Copy`: 키를 복사합니다. 성공하면 잠시 `Copied ✓`가 표시됩니다.
+- `Show` / `Hide`: 키 원문을 표시하거나 가립니다. 표시 후 10초가 지나면 자동으로 가려집니다.
+- `Edit`: 저장된 내용을 수정합니다.
+- `Delete`: 확인 후 키 내용을 삭제합니다. 오래된 기기에서 키가 되살아나지 않도록 암호화된 삭제 기록은 남겨 둡니다. 삭제 내용은 동기화된 다른 Chrome에도 반영됩니다.
+- `Lock vault`: 즉시 보관함을 잠급니다.
+- `Manage`: 별도 관리 페이지를 엽니다. 이 페이지에서 `Pin`으로 키를 상단에 고정하고, 왼쪽 드래그 핸들로 같은 그룹 안의 순서를 변경할 수 있습니다. 결과는 팝업과 Chrome Sync에도 동일하게 반영됩니다.
+
+검색창에 검색어를 입력하면 목록이 바로 필터링됩니다. API Key 원문은 검색 대상에 포함되지 않습니다. 목록이 길어져도 상단 검색창은 고정되어 있습니다.
+
+## 다른 PC에서 사용하기
+
+1. 같은 Google 계정으로 Chrome에 로그인하고 확장 프로그램 동기화를 활성화합니다.
+2. 다른 PC에도 **동일한 확장 ID의 Envpin**을 설치합니다.
+3. 기존 Vault가 동기화될 때까지 기다립니다.
+4. `Existing Envpin Vault Found`가 표시되면 기존 Master Password로 잠금을 해제합니다.
+
+> 개발자 모드에서 소스를 직접 설치하면 환경에 따라 확장 ID가 달라질 수 있습니다. 두 기기의 확장 ID가 다르면 서로 동기화되지 않습니다. 확장 프로그램 관리 화면에서 ID가 같은지 확인하세요.
+
+새 PC에서 기존 Vault가 나타나지 않는다면 별도 보관함을 만들기 전에 계정, 동기화 설정, 확장 ID를 확인하세요. 동기화를 끈 경우에는 해당 기기에서만 사용할 수 있습니다.
+
+## 단축키
+
+| 단축키 | 동작 |
+| --- | --- |
+| `Cmd + K` / `Ctrl + K` | 목록의 검색창으로 이동 |
+| `Enter` | 비밀번호 입력이나 저장 폼 제출 |
+| `Escape` | 검색어 지우기, 편집 취소 또는 삭제 확인창 닫기 |
+
+## 내 데이터는 어떻게 보관되나요?
+
+API Key뿐 아니라 서비스명, 이름, 웹사이트와 메모도 암호화해 저장합니다. Master Password 자체는 저장하지 않습니다. 잠금 해제 상태를 유지하는 데 필요한 암호화 키는 브라우저 세션 동안 메모리 기반 저장소에 보관됩니다.
+
+Envpin은 자체 서버나 별도 계정을 사용하지 않으며, 웹페이지를 읽거나 키를 자동 입력하지 않습니다. 확장 프로그램은 저장소 권한만 요청하며 분석·추적 기능을 포함하지 않습니다.
+
+## 알아두기
+
+- Chrome Sync의 저장 용량에는 제한이 있습니다. 긴 키나 메모를 저장할 수 없다면 내용을 줄여 보세요. 삭제 기록도 공간을 사용하며 자동으로 정리하지 않습니다.
+- 여러 PC에서 같은 키를 동시에 편집하면 충돌할 수 있습니다. 동기화가 완료된 내용을 확인한 뒤 편집하세요.
+- 가져오기·내보내기, 백업 복구, 팀 공유는 현재 제공하지 않습니다. 원래 서비스를 통해 키를 관리할 수 있는 수단도 유지하세요.
+- 실제 두 PC 간 Google Chrome Sync 전달은 아직 실환경 검증 전입니다.
+- 0.2로 업데이트할 때는 모든 기기의 Envpin을 업데이트하세요. 기존 Vault는 기존 비밀번호로 열 수 있습니다. 서로 다른 Vault가 발견되면 데이터를 보존하고 변경을 중단합니다. [충돌 대응 안내](docs/recovery.md)를 참고하세요.
+
+## 개발 및 테스트
+
+```sh
+npm test
+npm run build
+```
+
+`npm run dev`는 UI 개발용입니다. 실제 Vault 기능은 Chrome 확장 프로그램 환경에서 실행하세요. 소스를 업데이트한 뒤에는 다시 빌드하고 확장 프로그램 관리 화면에서 Envpin을 새로고침합니다.
+
+[Chrome 웹 스토어](https://chromewebstore.google.com/detail/envpin-%E2%80%94-api-key-vault/jbgcepnmfgekljldjlfakmjphbomgkec) · [지원 및 문제 신고](https://github.com/rheeeuro/envpin/issues) · [개인정보처리방침](PRIVACY.md) · [개발 및 보안 참고](docs/development.md) · [검증 결과](docs/verification-0.2.0.md) · [수동 QA 체크리스트](docs/manual-qa.md) · [설계문서](docs/envpin-design.md)

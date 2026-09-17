@@ -3,6 +3,9 @@ import type { Secret } from '../types';
 import { friendlyError, Vault } from '../core/vault';
 import { matchesSearch } from '../core/secret';
 import { ConfirmDialog, SecretCard, SecretForm } from './components';
+
+const GITHUB_URL = 'https://github.com/rheeeuro/envpin';
+
 export function App({ vault, mode = 'popup' }: { vault: Vault; mode?: 'popup' | 'manager' }) {
   const state = useSyncExternalStore(vault.subscribe, vault.getSnapshot);
   const [page, setPage] = useState<'list' | 'add' | Secret>('list');
@@ -82,7 +85,7 @@ export function App({ vault, mode = 'popup' }: { vault: Vault; mode?: 'popup' | 
       <div className="keys-scroll">
       {!state.secrets.length ? <section className="empty"><span className="empty-mark" aria-hidden="true">&gt;_</span><h2>No API keys yet</h2><p>Keep your API keys in one place<br />and copy them whenever you need.</p>{mode === 'manager' ? <button className="primary" onClick={() => setPage('add')}>Add API Key</button> : <a className="button primary" href="manage.html" target="_blank" rel="noopener noreferrer">Manage keys</a>}</section> : !filtered.length ? <p className="empty">No keys match your search.</p> : <section aria-label="API keys">{filtered.map(secret => <SecretCard key={secret.id} secret={secret} manage={mode === 'manager'} pin={() => togglePin(secret)} drag={mode === 'manager' && !busy && !query ? { dragging: dragging === secret.id, onDragStart: event => { const ids = state.secrets.map(item => item.id); draggingRef.current = secret.id; previewOrderRef.current = ids; setPreviewOrder(ids); setDragging(secret.id); event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', secret.id); }, onDragEnd: () => finishDrag(false), onDragOver: event => { const draggedId = draggingRef.current; if (draggedId && Boolean(state.secrets.find(item => item.id === draggedId)?.pinned) === Boolean(secret.pinned)) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; const bounds = event.currentTarget.getBoundingClientRect(); const ids = previewOrderRef.current ?? state.secrets.map(item => item.id); const after = bounds.height ? event.clientY >= bounds.top + bounds.height / 2 : ids.indexOf(draggedId) < ids.indexOf(secret.id); previewDrop(secret, after); } }, onDrop: event => { event.preventDefault(); finishDrag(true); } } : undefined} edit={() => { setError(''); setPage(secret); }} remove={() => { setError(''); setDeleting(secret); }} />)}</section>}
       </div>
-      <footer>Encrypted vault <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy</a><span>Chrome Sync</span></footer>
+      <footer><span>Encrypted vault</span><nav aria-label="Project links"><a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy</a><a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a></nav><span>Chrome Sync</span></footer>
     </>}
     {deleting && <ConfirmDialog secret={deleting} busy={busy} cancel={() => setDeleting(null)} confirm={() => void run(async () => { const secret = deleting; setDeleting(null); await vault.remove(secret); })} />}
   </main>;
