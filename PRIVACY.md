@@ -41,3 +41,5 @@ New master passwords must contain at least eight characters. A long, unique pass
 Contact the developer through [GitHub Issues](https://github.com/rheeeuro/envpin/issues). Do not include API keys, passwords, exported storage, or screenshots showing secret values. GitHub processes issue content under its own privacy policy.
 
 This policy may be updated when the extension's data handling changes. The effective date above identifies the current policy.
+
+[Security policy](SECURITY.md) · [Support and issues](https://github.com/rheeeuro/envpin/issues)

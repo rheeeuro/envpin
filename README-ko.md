@@ -4,10 +4,30 @@
 
 **Pin. Copy. Build.**
 
-여러 서비스의 API Key를 Chrome에 모아 두고, 필요할 때 바로 복사하세요.
-Envpin은 개발자를 위한 작은 API Key 보관함입니다. 서비스와 용도별로 키를 정리하고, Master Password로 잠그고, Chrome Sync를 통해 다른 PC에서도 사용할 수 있습니다.
+Chrome에서 사용하는 작고 프라이빗한 API Key Vault입니다. 개발용 Secret을 저장하고, 필요할 때 복사하고, 로컬에서 암호화한 Vault 데이터를 Chrome 설치 간 동기화합니다.
 
-[Chrome 웹 스토어에서 설치](https://chromewebstore.google.com/detail/envpin-%E2%80%94-api-key-vault/jbgcepnmfgekljldjlfakmjphbomgkec) · [문제 신고 및 기능 제안](https://github.com/rheeeuro/envpin/issues) · [개인정보처리방침](PRIVACY.md)
+**Envpin 계정 없음 · 자체 서버 없음 · 웹사이트 접근 없음 · Analytics 없음**
+
+[Chrome 웹 스토어에서 설치](https://chromewebstore.google.com/detail/envpin-%E2%80%94-api-key-vault/jbgcepnmfgekljldjlfakmjphbomgkec) · [보안](SECURITY.md) · [개인정보처리방침](PRIVACY.md) · [문제 신고](https://github.com/rheeeuro/envpin/issues)
+
+## 왜 Envpin인가요
+
+API Key는 메모, 메신저, 로컬 `.env` 파일 곳곳에 흩어지기 쉽습니다. Envpin은 방문하는 웹사이트의 접근 권한을 요구하거나 Vault를 Envpin 서버로 보내지 않으면서, 개인 개발자가 Chrome 안에서 소수의 API Key를 빠르게 찾아 쓸 수 있게 합니다.
+
+Envpin은 Chrome의 `storage` 권한만 요청합니다. Secret 원문은 Chrome Sync에 기록되기 전에 로컬에서 암호화되며, Master Password는 저장하지 않습니다.
+
+## 신뢰 모델 요약
+
+| 항목 | Envpin |
+| --- | --- |
+| Envpin 자체 서버 | 없음 |
+| 별도 Envpin 계정 | 필요 없음 |
+| 웹사이트 또는 호스트 접근 | 없음 |
+| 분석 또는 광고 | 없음 |
+| Chrome 권한 | `storage`만 사용 |
+| Secret 저장 | 저장 전에 AES-GCM으로 암호화 |
+| 기기 간 동기화 | 로컬에서 암호화한 Vault 데이터를 Chrome Sync로 전달 |
+| Master Password | 로컬에서만 사용하며 저장하지 않음 |
 
 <p align="center">
   <img src="store/screenshot-keys-1280x800.png" width="49%" alt="Envpin API 키 목록" />
@@ -16,51 +36,61 @@ Envpin은 개발자를 위한 작은 API Key 보관함입니다. 서비스와 �
 
 ## 주요 기능
 
-- **한 번에 복사** — 팝업에서 원하는 키의 `Copy`를 누르면 클립보드에 복사됩니다.
-- **보기 쉽게 정리** — 서비스명, 키 이름, 웹사이트, 메모를 함께 저장합니다.
-- **빠른 검색** — 서비스명, 이름, 웹사이트, 메모로 키를 찾습니다.
-- **별도 관리 페이지** — 팝업의 `Manage`를 눌러 넓은 화면에서 키를 관리하고, 자주 쓰는 키를 상단에 고정하거나 드래그해 순서를 바꿀 수 있습니다.
-- **기본 마스킹** — 키를 가려서 표시하고, `Show`를 누르면 10초 동안만 보여 줍니다.
-- **Vault 잠금** — Master Password로 잠금을 해제합니다. 팝업을 닫아도 유지되며 Chrome을 재시작하면 다시 잠깁니다.
-- **암호화 및 동기화** — 키와 메모를 암호화해 저장하고, Chrome Sync가 활성화된 기기 사이에 동기화합니다.
+- **한 번에 복사** — 팝업에서 Secret을 바로 복사합니다.
+- **빠른 검색** — 서비스명, 키 이름, 웹사이트, 메모를 검색합니다. Secret 원문은 검색하지 않습니다.
+- **보기 쉽게 정리** — Manage 페이지에서 자주 쓰는 키를 고정하고 순서를 바꿉니다.
+- **기본 마스킹** — 표시한 Secret은 10초 후 다시 가립니다.
+- **세션 잠금** — 팝업을 닫아도 잠금 해제 상태를 유지하고, 원할 때 즉시 잠급니다. Chrome을 재시작하면 세션이 지워집니다.
+- **암호화 후 동기화** — 로컬에서 암호화한 항목을 Chrome Sync를 통해 다른 Chrome 설치와 동기화합니다.
 
-## 설치하기
+## 보안 요약
 
-### Chrome 웹 스토어에서 설치
+Envpin은 Web Crypto의 PBKDF2-SHA-256 600,000회, 16바이트 무작위 salt, AES-GCM-256을 사용합니다. 암호화할 때마다 새로운 12바이트 IV를 만들며, 현재 Vault 형식은 Vault와 레코드의 컨텍스트를 AES-GCM 추가 인증 데이터에 바인딩합니다.
 
-1. [Envpin — API Key Vault](https://chromewebstore.google.com/detail/envpin-%E2%80%94-api-key-vault/jbgcepnmfgekljldjlfakmjphbomgkec) 페이지를 엽니다.
-2. **Chrome에 추가**를 눌러 설치합니다.
-3. Chrome 툴바의 확장 프로그램 메뉴에서 **Envpin**을 고정합니다.
+잠금 해제 중에는 파생된 암호화 키를 Chrome 확장 프로그램의 세션 저장소에 보관하며, 브라우저 세션이 끝나면 지워집니다. Envpin은 복호화한 Secret을 `storage.local`, LocalStorage, IndexedDB 또는 Envpin 서버에 저장하지 않습니다.
 
-Envpin은 저장소 권한만 요청합니다. 웹페이지를 읽거나 API Key를 자동 입력하지 않으며, 자체 서버·분석·광고 기능을 사용하지 않습니다.
+Secret을 시스템 클립보드에 복사한 뒤에는 암호화가 보호하지 못합니다. 이미 잠금 해제된 기기의 악성코드나 손상된 브라우저 환경도 방어할 수 없습니다. Envpin은 독립 보안 감사를 받지 않았습니다. 위협 모델과 구현 상세는 [보안 정책](SECURITY.md)과 [개발 및 보안 참고](docs/development.md)를 확인하세요.
 
-### 소스에서 직접 설치
+## 빠른 시작
 
-개발 또는 검증 목적으로 이 저장소의 소스를 빌드해 설치할 수도 있습니다. Git과 Node.js 22 이상을 준비하세요.
+1. Envpin을 설치하고 길고 고유한 Master Password로 Vault를 만듭니다.
+2. 서비스명, 키 이름, Secret을 추가합니다. 웹사이트와 메모는 선택 사항입니다.
+3. 팝업에서 항목을 검색하고 필요할 때 Secret을 복사합니다.
+
+비밀번호 재설정은 없습니다. Master Password를 잊으면 Envpin이 Vault를 복구할 수 없습니다.
+
+## 다른 PC와 동기화
+
+1. 같은 Google 계정으로 Chrome에 로그인하고 확장 프로그램 동기화를 활성화합니다.
+2. 다른 PC에도 **동일한 확장 ID의 Envpin**을 설치합니다.
+3. 기존 Vault가 동기화될 때까지 기다립니다.
+4. `Existing Envpin Vault Found`가 표시되면 기존 Master Password로 잠금을 해제합니다.
+
+Envpin은 Vault 내용을 로컬에서 암호화한 뒤 Chrome Sync에 기록합니다. 2026년 9월 16일 Windows와 macOS 물리 PC 사이에서 Chrome Sync를 통한 생성, 수정, 삭제, 오프라인 복귀, 브라우저 재시작, 동시 수정 시나리오를 검증했습니다. 정확한 범위는 [물리 PC Sync 검증 결과](docs/physical-sync-verification-2026-09-16.md)와 [자동화 검증 결과](docs/verification-0.2.0.md)를 확인하세요.
+
+> 소스에서 직접 설치한 빌드는 Chrome 웹 스토어 버전과 확장 ID가 다를 수 있습니다. 확장 ID가 다르면 Chrome Sync 저장소를 공유하지 않습니다.
+
+## 소스에서 설치
+
+Git과 Node.js 22 이상이 필요합니다.
 
 ```sh
 git clone https://github.com/rheeeuro/envpin.git
 cd envpin
 npm ci
+npm test
 npm run build
 ```
 
-1. Chrome 주소창에 `chrome://extensions`를 입력합니다.
-2. 오른쪽 위의 **개발자 모드**를 켭니다.
-3. **압축해제된 확장 프로그램을 로드합니다**를 누르고, 방금 빌드한 `envpin/dist` 폴더를 선택합니다.
-4. Chrome 툴바의 확장 프로그램 메뉴에서 **Envpin**을 고정합니다.
+`chrome://extensions`를 열고 **개발자 모드**를 켠 다음 **압축해제된 확장 프로그램을 로드합니다**를 선택해 생성된 `envpin/dist` 폴더를 지정합니다.
 
-> 소스에서 직접 설치한 빌드는 Chrome 웹 스토어 버전과 확장 ID가 다를 수 있으며, 두 설치 사이에는 Vault가 동기화되지 않습니다.
+## Vault 사용법
 
-## 처음 사용하기
+### Vault 만들기
 
-### 1. 보관함 만들기
+Envpin을 열고 Master Password를 두 번 입력한 뒤 `Create Vault`를 누릅니다. 새 비밀번호는 8자 이상이어야 하며, 길고 고유한 암호문을 권장합니다.
 
-툴바에서 Envpin을 열고 Master Password를 두 번 입력한 뒤 `Create Vault`를 누릅니다. 8자 이상의 비밀번호를 입력하세요. 길고 고유한 암호문을 권장합니다.
-
-**Master Password를 잊으면 저장된 키를 복구할 수 없습니다.** 비밀번호 재설정과 복구 기능은 제공하지 않습니다.
-
-### 2. API Key 추가하기
+### API Key 추가하기
 
 `+` 또는 `Add API Key`를 누르고 다음 내용을 입력합니다.
 
@@ -72,29 +102,16 @@ npm run build
 | Website | 관련 웹사이트 주소. 선택 사항 |
 | Note | 용도나 참고할 메모. 선택 사항 |
 
-`Save key`를 누르면 목록으로 돌아옵니다.
+### 복사하고 관리하기
 
-### 3. 복사하고 관리하기
+- `Copy`는 Secret을 시스템 클립보드에 복사합니다. Envpin은 클립보드를 자동으로 지우지 않습니다.
+- `Show`는 Secret을 10초 동안 표시하고, `Hide`는 즉시 가립니다.
+- `Edit`는 저장된 항목을 수정합니다.
+- `Delete`는 확인 후 암호화된 항목을 제거하고, 오래된 오프라인 기기가 되살리지 못하도록 암호화된 삭제 기록을 남깁니다.
+- `Lock vault`는 활성 세션을 즉시 지웁니다.
+- `Manage`는 항목을 고정하거나 같은 그룹 안에서 순서를 바꾸는 관리 페이지를 엽니다.
 
-- `Copy`: 키를 복사합니다. 성공하면 잠시 `Copied ✓`가 표시됩니다.
-- `Show` / `Hide`: 키 원문을 표시하거나 가립니다. 표시 후 10초가 지나면 자동으로 가려집니다.
-- `Edit`: 저장된 내용을 수정합니다.
-- `Delete`: 확인 후 키 내용을 삭제합니다. 오래된 기기에서 키가 되살아나지 않도록 암호화된 삭제 기록은 남겨 둡니다. 삭제 내용은 동기화된 다른 Chrome에도 반영됩니다.
-- `Lock vault`: 즉시 보관함을 잠급니다.
-- `Manage`: 별도 관리 페이지를 엽니다. 이 페이지에서 `Pin`으로 키를 상단에 고정하고, 왼쪽 드래그 핸들로 같은 그룹 안의 순서를 변경할 수 있습니다. 결과는 팝업과 Chrome Sync에도 동일하게 반영됩니다.
-
-검색창에 검색어를 입력하면 목록이 바로 필터링됩니다. API Key 원문은 검색 대상에 포함되지 않습니다. 목록이 길어져도 상단 검색창은 고정되어 있습니다.
-
-## 다른 PC에서 사용하기
-
-1. 같은 Google 계정으로 Chrome에 로그인하고 확장 프로그램 동기화를 활성화합니다.
-2. 다른 PC에도 **동일한 확장 ID의 Envpin**을 설치합니다.
-3. 기존 Vault가 동기화될 때까지 기다립니다.
-4. `Existing Envpin Vault Found`가 표시되면 기존 Master Password로 잠금을 해제합니다.
-
-> 개발자 모드에서 소스를 직접 설치하면 환경에 따라 확장 ID가 달라질 수 있습니다. 두 기기의 확장 ID가 다르면 서로 동기화되지 않습니다. 확장 프로그램 관리 화면에서 ID가 같은지 확인하세요.
-
-새 PC에서 기존 Vault가 나타나지 않는다면 별도 보관함을 만들기 전에 계정, 동기화 설정, 확장 ID를 확인하세요. 동기화를 끈 경우에는 해당 기기에서만 사용할 수 있습니다.
+검색 대상은 서비스명, 키 이름, 웹사이트, 메모입니다. Secret 원문은 검색에 포함하지 않습니다.
 
 ## 단축키
 
@@ -104,27 +121,24 @@ npm run build
 | `Enter` | 비밀번호 입력이나 저장 폼 제출 |
 | `Escape` | 검색어 지우기, 편집 취소 또는 삭제 확인창 닫기 |
 
-## 내 데이터는 어떻게 보관되나요?
+## 알려진 제한 사항
 
-API Key뿐 아니라 서비스명, 이름, 웹사이트와 메모도 암호화해 저장합니다. Master Password 자체는 저장하지 않습니다. 잠금 해제 상태를 유지하는 데 필요한 암호화 키는 브라우저 세션 동안 메모리 기반 저장소에 보관됩니다.
+- Chrome Sync 저장 용량에는 제한이 있습니다. 암호화된 삭제 기록도 공간을 사용하며, 오래된 오프라인 기기의 항목 부활을 막기 위해 자동 삭제하지 않습니다.
+- 가져오기, 내보내기, 백업 복구, 팀 공유는 아직 제공하지 않습니다. 각 Secret의 원래 서비스에서 복구할 수단을 유지하세요.
+- 여러 PC에서 같은 항목을 동시에 편집하면 충돌 처리가 필요할 수 있습니다. 다른 기기에서 편집하기 전에 동기화를 기다리세요.
+- Envpin은 독립 보안 감사를 받지 않았습니다.
 
-Envpin은 자체 서버나 별도 계정을 사용하지 않으며, 웹페이지를 읽거나 키를 자동 입력하지 않습니다. 확장 프로그램은 저장소 권한만 요청하며 분석·추적 기능을 포함하지 않습니다.
+## 로드맵
 
-## 알아두기
+단기 우선순위는 암호화된 백업과 복구, 설정 가능한 자동 잠금, 클립보드 보호 옵션, Sync 진단 개선입니다. 이후 후보에는 명시적인 `.env` 가져오기·내보내기, 프로젝트 태그, 키보드 중심의 빠른 복사가 있습니다. 로드맵 항목은 제안이며 출시된 기능이 아닙니다.
 
-- Chrome Sync의 저장 용량에는 제한이 있습니다. 긴 키나 메모를 저장할 수 없다면 내용을 줄여 보세요. 삭제 기록도 공간을 사용하며 자동으로 정리하지 않습니다.
-- 여러 PC에서 같은 키를 동시에 편집하면 충돌할 수 있습니다. 동기화가 완료된 내용을 확인한 뒤 편집하세요.
-- 가져오기·내보내기, 백업 복구, 팀 공유는 현재 제공하지 않습니다. 원래 서비스를 통해 키를 관리할 수 있는 수단도 유지하세요.
-- 실제 두 PC 간 Google Chrome Sync 전달은 아직 실환경 검증 전입니다.
-- 0.2로 업데이트할 때는 모든 기기의 Envpin을 업데이트하세요. 기존 Vault는 기존 비밀번호로 열 수 있습니다. 서로 다른 Vault가 발견되면 데이터를 보존하고 변경을 중단합니다. [충돌 대응 안내](docs/recovery.md)를 참고하세요.
-
-## 개발 및 테스트
+## 개발 및 검증
 
 ```sh
 npm test
 npm run build
 ```
 
-`npm run dev`는 UI 개발용입니다. 실제 Vault 기능은 Chrome 확장 프로그램 환경에서 실행하세요. 소스를 업데이트한 뒤에는 다시 빌드하고 확장 프로그램 관리 화면에서 Envpin을 새로고침합니다.
+`npm run dev`는 UI 개발용입니다. 실제 Vault 기능은 Chrome 확장 프로그램 환경에서 실행하세요. 소스를 바꾼 뒤에는 확장을 다시 빌드하고 Chrome 확장 프로그램 페이지에서 새로고침합니다.
 
-[Chrome 웹 스토어](https://chromewebstore.google.com/detail/envpin-%E2%80%94-api-key-vault/jbgcepnmfgekljldjlfakmjphbomgkec) · [지원 및 문제 신고](https://github.com/rheeeuro/envpin/issues) · [개인정보처리방침](PRIVACY.md) · [개발 및 보안 참고](docs/development.md) · [검증 결과](docs/verification-0.2.0.md) · [수동 QA 체크리스트](docs/manual-qa.md) · [설계문서](docs/envpin-design.md)
+[보안](SECURITY.md) · [개인정보처리방침](PRIVACY.md) · [물리 PC Sync 검증](docs/physical-sync-verification-2026-09-16.md) · [자동화 검증](docs/verification-0.2.0.md) · [수동 QA 체크리스트](docs/manual-qa.md) · [Vault 충돌 대응](docs/recovery.md) · [설계 문서](docs/envpin-design.md)

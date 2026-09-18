@@ -44,7 +44,7 @@ Background worker는 암호문만 다룹니다. 잠금 상태에서 암호문을
 
 단위/통합 테스트는 실제 Web Crypto와 메모리 기반 Chrome Storage mock을 사용합니다. UI는 jsdom, E2E는 격리된 실제 Chromium 프로필에서 빌드된 확장을 로드해 검증합니다.
 
-E2E의 두 프로필 간 전달은 테스트가 암호문을 명시적으로 복사하는 방식입니다. Chrome Storage와 onChanged의 실제 동작은 확인하지만 Google Sync 네트워크 전달을 검증한 것은 아닙니다. 자동 테스트는 실제 두 PC QA를 대체하지 않습니다.
+E2E의 두 프로필 간 전달은 테스트가 암호문을 명시적으로 복사하는 방식입니다. Chrome Storage와 onChanged의 실제 동작은 확인하지만 이 자동 테스트 자체가 Google Sync 네트워크 전달을 검증하는 것은 아닙니다. 별도로 2026-09-16에 Windows와 macOS 물리 PC 조합에서 Chrome Sync를 통한 생성·수정·삭제·오프라인 복귀·재시작·동시 수정을 모두 검증했습니다. 자세한 결과는 [물리 PC Sync 검증 기록](physical-sync-verification-2026-09-16.md)을 참고하세요.
 
 테스트 데이터는 실제 자격증명이 아닙니다. Playwright trace, 영상, 자동 실패 스크린샷은 비활성화했습니다. 스토어용 이미지는 별도의 테스트용 샘플만 포함합니다.
 
@@ -52,4 +52,4 @@ E2E의 두 프로필 간 전달은 테스트가 암호문을 명시적으로 복
 
 `npm run package`는 권한, 파일 목록, 매니페스트 자산, inline/remote script와 외부 요청 코드를 검사하고 `release/envpin-<version>.zip`과 SHA-256 파일을 생성합니다. 이는 정적 검사이며 보안 감사를 대신하지 않습니다. `release/`, 테스트 산출물과 개발 의존성은 Git과 ZIP에서 제외합니다.
 
-[개인정보처리방침](../PRIVACY.md) · [수동 QA](manual-qa.md) · [웹스토어 제출 초안](../store/listing.md)
+[보안 정책](../SECURITY.md) · [개인정보처리방침](../PRIVACY.md) · [수동 QA](manual-qa.md) · [웹스토어 제출 초안](../store/listing.md)

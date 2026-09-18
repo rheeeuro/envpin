@@ -6,19 +6,19 @@ Envpin — API Key Vault
 
 ## 짧은 설명
 
-Store, organize, and copy your API keys from an encrypted vault in Chrome.
+Private API key vault for Chrome. Local encryption, Chrome Sync, no backend, and no website access.
 
 ## 상세 설명
 
 Pin. Copy. Build.
 
-Envpin keeps your developer secrets close at hand. Add a service name and key name, save your API key, and copy it whenever you need it.
+Envpin is a small, privacy-first API key vault for developers. Your secrets are encrypted locally before they are stored or synchronized through Chrome Sync. Envpin runs without its own backend, requires no separate Envpin account, does not read the websites you visit, and includes no analytics or advertising.
 
 • Organize API keys with optional website URLs and notes.
 • Search by service, name, website, or note.
 • Copy a key with one click.
 • Keep keys masked by default; reveal them for 10 seconds.
-• Encrypt your keys and notes locally before saving them.
+• Encrypt service names, key names, websites, notes, and secrets locally before saving them.
 • Keep the vault unlocked until you lock it or restart Chrome.
 • Synchronize encrypted entries with your signed-in Chrome account when Chrome Sync is enabled.
 
@@ -26,11 +26,14 @@ Create a vault with a master password of at least eight characters. Choose a lon
 
 Envpin requires only the storage permission. It does not read websites, automatically fill keys, operate a backend, or include analytics and advertising.
 
+Encryption does not protect a secret after you copy it to the system clipboard or protect an already-unlocked device from malware. Envpin has not received an independent security audit. Physical-device Chrome Sync QA between Windows and macOS passed on September 16, 2026.
+
 Deletion removes the saved key content and retains an encrypted deletion marker to keep an outdated offline copy from restoring it. Deletion markers use part of Chrome Sync's limited storage space. Update Envpin on all devices before using the new data format.
 
 ## 개인정보 및 지원
 
 - 공개 정책 URL 후보: https://github.com/rheeeuro/envpin/blob/main/PRIVACY.md — 해당 커밋이 공개 저장소에 올라가 익명으로 접근 가능한지 제출 전 확인.
+- 보안 정책: https://github.com/rheeeuro/envpin/blob/main/SECURITY.md — 취약점 제보 범위와 공개 이슈에 포함하면 안 되는 정보를 함께 안내.
 - 문의: https://github.com/rheeeuro/envpin/issues
 - 확장 내부: privacy.html에서 동일 정책 열람 가능.
 - 지원 문의에 비밀번호, API Key, 저장소 덤프를 첨부하지 않도록 안내.
@@ -51,9 +54,9 @@ Deletion removes the saved key content and retains an encrypted deletion marker 
 - store/screenshot-keys-1280x800.png: 실제 확장 프로그램 목록 화면(샘플 데이터).
 - store/screenshot-lock-1280x800.png: 실제 잠금 화면.
 
-## 제출 보류 조건
+## 릴리스 전 확인
 
-실제 동일 Google 계정의 두 기기에서 Chrome Sync 전달과 오프라인 복귀를 확인하기 전에는 제출하지 않습니다. 자동 Chromium 테스트는 실브라우저 동작을 확인하지만 Google Sync 서비스의 실기기 검증을 대신하지 않습니다.
+2026-09-16 Windows와 macOS 물리 PC 조합에서 Chrome Sync를 통한 생성·수정·삭제·오프라인 복귀·재시작·동시 수정 시나리오를 모두 통과했습니다. 이후 릴리스에서 Sync 구현이나 데이터 형식이 바뀌면 같은 항목을 다시 확인합니다. 자동 Chromium 테스트는 실브라우저 동작을 확인하지만 Google Sync 서비스의 실기기 검증을 대신하지 않습니다.
 
 참고: https://developer.chrome.com/docs/webstore/program-policies/user-data-faq
 참고: https://developer.chrome.com/docs/webstore/images

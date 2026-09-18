@@ -1,6 +1,6 @@
 # 실제 Chrome QA
 
-아래는 실제 사용자 Chrome과 Google Sync에서 확인할 체크리스트입니다. 자동 Chromium 검증은 [0.2.0 검증 결과](verification-0.2.0.md)에 별도로 기록했습니다. 실제 API Key 대신 폐기 가능한 테스트 문자열을 사용하세요.
+아래는 실제 사용자 Chrome과 Google Sync에서 반복 검증할 때 사용하는 체크리스트입니다. 2026-09-16 Windows와 macOS 물리 PC 조합의 완료 기록은 [물리 PC Chrome Sync 검증 결과](physical-sync-verification-2026-09-16.md)에, 자동 Chromium 검증은 [0.2.0 검증 결과](verification-0.2.0.md)에 기록했습니다. 실제 API Key 대신 폐기 가능한 테스트 문자열을 사용하세요.
 
 - [ ] `npm run build` 후 `dist`를 Load unpacked하여 설치 오류가 없는지 확인.
 - [ ] Vault 생성 → 키 추가 → 팝업 닫기/열기 → Unlock 유지 및 키 표시.

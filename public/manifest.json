@@ -3,7 +3,7 @@
   "name": "Envpin \u2014 API Key Vault",
   "version": "0.2.1",
   "minimum_chrome_version": "102",
-  "description": "Securely store, sync, and copy your API keys and developer secrets across Chrome.",
+  "description": "Private API key vault with local encryption, Chrome Sync, no backend, and no website access.",
   "homepage_url": "https://github.com/rheeeuro/envpin",
   "permissions": [
     "storage"
